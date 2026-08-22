@@ -271,14 +271,14 @@ export default function CustomersPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-navy-900">Pelanggan</h1>
+          <h1 className="text-2xl font-bold text-[#171717]">Pelanggan</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {displayRange
               ? `Menampilkan ${displayRange.start}-${displayRange.end} dari ${totalItems} pelanggan`
               : 'Daftar pelanggan Karputindo Net'}
           </p>
         </div>
-        <Button asChild className="bg-brand hover:bg-brand-light text-white shrink-0">
+        <Button asChild className="bg-[#C51F2A] hover:bg-[#A71922] text-white shrink-0">
           <Link href="/admin/customers/new">
             <Plus className="w-4 h-4 mr-2" />
             Tambah Pelanggan
@@ -287,7 +287,7 @@ export default function CustomersPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-border p-4 space-y-4">
+      <div className="bg-white rounded-xl shadow-sm p-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search */}
           <div className="relative flex-1 min-w-0">
@@ -296,7 +296,7 @@ export default function CustomersPage() {
               placeholder="Cari pelanggan..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              className="pl-9 border-[#E5E7EB] focus-visible:border-[#C51F2A] focus-visible:ring-[#C51F2A]/20"
             />
           </div>
 
@@ -337,11 +337,11 @@ export default function CustomersPage() {
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-border">
+      <div className="bg-white rounded-xl shadow-sm">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/30 hover:bg-muted/30">
+              <TableRow className="bg-[#F9FAFB] hover:bg-[#F9FAFB]">
                 <TableHead className="w-12 text-center">NO</TableHead>
                 <TableHead>NO PELANGGAN</TableHead>
                 <TableHead>NAMA PELANGGAN</TableHead>
@@ -392,7 +392,7 @@ export default function CustomersPage() {
                         </p>
                       </div>
                       {!hasActiveFilters && (
-                        <Button asChild className="bg-brand hover:bg-brand-light text-white">
+                        <Button asChild className="bg-[#C51F2A] hover:bg-[#A71922] text-white">
                           <Link href="/admin/customers/new">
                             <Plus className="w-4 h-4 mr-2" />
                             Tambah Pelanggan
@@ -411,7 +411,7 @@ export default function CustomersPage() {
                     <TableCell className="font-medium">
                       {customer.customerNumber}
                     </TableCell>
-                    <TableCell className="font-medium text-navy-900">
+                    <TableCell className="font-medium text-[#171717]">
                       {customer.fullName}
                     </TableCell>
                     <TableCell>{customer.phone1 || '-'}</TableCell>
@@ -519,7 +519,7 @@ export default function CustomersPage() {
                       key={pn}
                       variant={page === pn ? 'default' : 'outline'}
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className={`h-8 w-8 p-0 ${page === pn ? 'bg-[#C51F2A] text-white hover:bg-[#A71922]' : ''}`}
                       onClick={() => setPage(pn)}
                     >
                       {pn}

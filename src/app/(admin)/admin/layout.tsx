@@ -19,12 +19,12 @@ export default async function AdminLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <AdminHeader />
-        <main className="flex-1 p-4 md:p-6 bg-background">
+        <main className="flex-1 p-4 md:p-6 bg-[#F5F6F8]">
           {children}
         </main>
         {/* Footer */}
-        <footer className="border-t border-border bg-white px-6 py-3 mt-auto">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <footer className="border-t border-[#E5E7EB] bg-white px-6 py-3 mt-auto">
+          <div className="flex items-center justify-between text-xs text-gray-500">
             <span>&copy; {new Date().getFullYear()} Karputindo Net</span>
             <span>Customer Management System v1.0</span>
           </div>

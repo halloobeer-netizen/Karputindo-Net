@@ -17,7 +17,6 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -82,31 +81,28 @@ export function AdminSidebar() {
   return (
     <aside
       className={cn(
-        'flex flex-col bg-sidebar text-sidebar-foreground h-screen sticky top-0 transition-all duration-300',
+        'flex flex-col bg-[#111318] text-white h-screen sticky top-0 transition-all duration-300',
         collapsed ? 'w-[68px]' : 'w-[260px]'
       )}
     >
-      {/* Brand Header — Horizontal Logo */}
-      <div
-        className={cn(
-          'flex items-center shrink-0 px-5 py-3',
-          collapsed ? 'justify-center' : ''
-        )}
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-      >
-        {!collapsed ? (
-          <img
-            src="/images/karputindo-logo-sidebar.png"
-            alt="Karputindo Net - Internet Service Provider"
-            style={{ width: '155px', height: 'auto', objectFit: 'contain' }}
-          />
-        ) : (
-          <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: 'rgba(227,6,19,0.9)' }}
-          >
-            <span className="text-sm font-extrabold text-white tracking-tight">KN</span>
+      {/* Brand Header */}
+      <div className="flex items-center gap-3 px-4 h-16 border-b border-[#1E2028] shrink-0">
+        {collapsed ? (
+          <div className="flex items-center justify-center w-full">
+            <img
+              src="/images/karputindo-logo-sidebar.png"
+              alt="Karputindo Net"
+              className="h-8 w-auto"
+            />
           </div>
+        ) : (
+          <>
+            <img
+              src="/images/karputindo-logo-sidebar.png"
+              alt="Karputindo Net"
+              className="h-10 w-auto shrink-0"
+            />
+          </>
         )}
       </div>
 
@@ -123,12 +119,12 @@ export function AdminSidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-sidebar-accent text-sidebar-primary'
-                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
+                  ? 'bg-[#C51F2A] text-white'
+                  : 'text-gray-400 hover:bg-[#1C1E25] hover:text-white',
                 collapsed && 'justify-center px-0'
               )}
             >
-              <item.icon className={cn('w-5 h-5 shrink-0', isActive && 'text-sidebar-primary')} />
+              <item.icon className={cn('w-5 h-5 shrink-0', isActive && 'text-white')} />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           );
@@ -149,17 +145,17 @@ export function AdminSidebar() {
       </nav>
 
       {/* Bottom Section */}
-      <div className="border-t border-sidebar-border p-3 space-y-1">
+      <div className="border-t border-[#1E2028] p-3 space-y-1">
         {/* User Info */}
         {!collapsed && session?.user && (
           <div className="px-3 py-2 mb-2">
-            <p className="text-xs font-medium text-sidebar-foreground truncate">
+            <p className="text-xs font-medium text-gray-400 truncate">
               {session.user.name}
             </p>
-            <p className="text-[10px] text-sidebar-foreground/50 truncate">
+            <p className="text-[10px] text-gray-400/70 truncate">
               {session.user.role}
             </p>
-            <p className="text-[10px] text-sidebar-foreground/40 truncate">
+            <p className="text-[10px] text-gray-400/50 truncate">
               {session.user.email}
             </p>
           </div>
@@ -171,7 +167,7 @@ export function AdminSidebar() {
             <TooltipTrigger asChild>
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center w-full px-0 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
+                className="flex items-center justify-center w-full px-0 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-[#1C1E25] hover:text-red-400 transition-colors"
               >
                 <LogOut className="w-5 h-5 shrink-0" />
               </button>
@@ -183,7 +179,7 @@ export function AdminSidebar() {
         ) : (
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-[#1C1E25] hover:text-red-400 transition-colors"
           >
             <LogOut className="w-5 h-5 shrink-0" />
             <span>Logout</span>
@@ -194,7 +190,7 @@ export function AdminSidebar() {
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            'flex items-center w-full py-2 rounded-lg text-xs text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors',
+            'flex items-center w-full py-2 rounded-lg text-xs text-gray-500 hover:text-gray-300 transition-colors',
             collapsed ? 'justify-center' : 'justify-end px-3 gap-2'
           )}
         >

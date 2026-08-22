@@ -137,7 +137,7 @@ function SectionCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-navy-900">
+        <CardTitle className="flex items-center gap-2 text-[#171717]">
           <Icon className="w-5 h-5 text-navy-600" />
           {title}
         </CardTitle>
@@ -271,7 +271,7 @@ export default function CustomerDetailPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-navy-900">{customer.fullName}</h1>
+          <h1 className="text-2xl font-bold text-[#171717]">{customer.fullName}</h1>
           <div className="flex items-center gap-3 mt-1">
             <span className="text-sm text-muted-foreground">{customer.customerNumber}</span>
             <Badge variant="outline" className={STATUS_BADGE_CLASSES[customer.status]}>
@@ -289,7 +289,7 @@ export default function CustomerDetailPage() {
         <DetailRow label="No Telepon 2">{fmt(customer.phone2)}</DetailRow>
         <DetailRow label="Email">
           {customer.email ? (
-            <a href={`mailto:${customer.email}`} className="text-brand hover:underline">{customer.email}</a>
+            <a href={`mailto:${customer.email}`} className="text-[#C51F2A] hover:underline">{customer.email}</a>
           ) : '-'}
         </DetailRow>
       </SectionCard>

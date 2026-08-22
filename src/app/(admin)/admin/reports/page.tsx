@@ -17,7 +17,7 @@ export default function ReportsPage() {
 
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-navy-900">Laporan</h1>
+        <h1 className="text-2xl font-bold text-[#171717]">Laporan</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Laporan dan analitik data pelanggan
         </p>

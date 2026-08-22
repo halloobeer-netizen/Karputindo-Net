@@ -17,7 +17,7 @@ export default function SettingsPage() {
 
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-navy-900">Pengaturan</h1>
+        <h1 className="text-2xl font-bold text-[#171717]">Pengaturan</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Konfigurasi dan pengaturan sistem
         </p>

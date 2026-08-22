@@ -149,7 +149,7 @@ export function CustomerForm({ defaultValues, customerId }: CustomerFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* ===== Section 1: Identitas ===== */}
         <section className="bg-white rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold text-navy-900 mb-4">Identitas</h2>
+          <h2 className="text-lg font-semibold text-[#171717] mb-4">Identitas</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -225,7 +225,7 @@ export function CustomerForm({ defaultValues, customerId }: CustomerFormProps) {
 
         {/* ===== Section 2: Layanan ===== */}
         <section className="bg-white rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold text-navy-900 mb-4">Layanan</h2>
+          <h2 className="text-lg font-semibold text-[#171717] mb-4">Layanan</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -342,7 +342,7 @@ export function CustomerForm({ defaultValues, customerId }: CustomerFormProps) {
 
         {/* ===== Section 3: Lokasi ===== */}
         <section className="bg-white rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold text-navy-900 mb-4">Lokasi</h2>
+          <h2 className="text-lg font-semibold text-[#171717] mb-4">Lokasi</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -402,7 +402,7 @@ export function CustomerForm({ defaultValues, customerId }: CustomerFormProps) {
 
         {/* ===== Section 4: Informasi Internal ===== */}
         <section className="bg-white rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold text-navy-900 mb-4">
+          <h2 className="text-lg font-semibold text-[#171717] mb-4">
             Informasi Internal
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -481,7 +481,7 @@ export function CustomerForm({ defaultValues, customerId }: CustomerFormProps) {
 
         {/* ===== Section 5: Catatan ===== */}
         <section className="bg-white rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold text-navy-900 mb-4">Catatan</h2>
+          <h2 className="text-lg font-semibold text-[#171717] mb-4">Catatan</h2>
           <FormField
             control={form.control}
             name="notes"
@@ -506,7 +506,7 @@ export function CustomerForm({ defaultValues, customerId }: CustomerFormProps) {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-brand hover:bg-brand-light text-white min-w-[160px]"
+            className="bg-[#C51F2A] hover:bg-[#A71922] text-white min-w-[160px]"
           >
             {isSubmitting ? (
               <>

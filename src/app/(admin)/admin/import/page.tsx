@@ -275,14 +275,14 @@ export default function ImportPage() {
         </div>
 
         <div>
-          <h1 className="text-2xl font-bold text-navy-900">Import Pelanggan</h1>
+          <h1 className="text-2xl font-bold text-[#171717]">Import Pelanggan</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Upload file Excel (.xlsx) untuk mengimport data pelanggan
           </p>
         </div>
 
         {/* Upload Area */}
-        <div className="bg-white rounded-xl border-2 border-dashed border-border hover:border-brand/50 transition-colors p-12">
+        <div className="bg-white rounded-xl border-2 border-dashed border-border hover:border-[#C51F2A]/50 transition-colors p-12">
           <div
             className="flex flex-col items-center justify-center gap-4 cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
@@ -339,7 +339,7 @@ export default function ImportPage() {
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-navy-900">Preview Import</h1>
+            <h1 className="text-2xl font-bold text-[#171717]">Preview Import</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {fileMeta?.fileName} — {fileMeta && formatFileSize(fileMeta.fileSize)}
             </p>
@@ -351,7 +351,7 @@ export default function ImportPage() {
             </Button>
             {summary && summary.readyCount > 0 && (
               <Button
-                className="bg-brand hover:bg-brand-light text-white"
+                className="bg-[#C51F2A] hover:bg-[#A71922] text-white"
                 onClick={() => setConfirmOpen(true)}
               >
                 <Download className="w-4 h-4 mr-2" />
@@ -415,11 +415,11 @@ export default function ImportPage() {
         </div>
 
         {/* Data Table */}
-        <div className="bg-white rounded-lg border border-border">
+        <div className="bg-white rounded-xl shadow-sm">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/30 hover:bg-muted/30">
+                <TableRow className="bg-[#F9FAFB] hover:bg-[#F9FAFB]">
                   <TableHead className="w-12 text-center">#</TableHead>
                   <TableHead className="w-28">NO PELANGGAN</TableHead>
                   <TableHead className="w-44">NAMA</TableHead>
@@ -449,7 +449,7 @@ export default function ImportPage() {
                           {row.rowIndex + 1}
                         </TableCell>
                         <TableCell className="font-medium">{fmt(row.customerNumber)}</TableCell>
-                        <TableCell className="font-medium text-navy-900">{fmt(row.fullName)}</TableCell>
+                        <TableCell className="font-medium text-[#171717]">{fmt(row.fullName)}</TableCell>
                         <TableCell>{fmt(row.phone1)}</TableCell>
                         <TableCell className="lowercase">{fmt(row.email)}</TableCell>
                         <TableCell className="max-w-[200px] truncate">{fmt(row.packageExcel)}</TableCell>
@@ -518,7 +518,7 @@ export default function ImportPage() {
             <DialogFooter>
               <Button variant="outline" onClick={() => setConfirmOpen(false)}>Batal</Button>
               <Button
-                className="bg-brand hover:bg-brand-light text-white"
+                className="bg-[#C51F2A] hover:bg-[#A71922] text-white"
                 onClick={handleImport}
                 disabled={isImporting}
               >
@@ -546,7 +546,7 @@ export default function ImportPage() {
         </div>
 
         <div>
-          <h1 className="text-2xl font-bold text-navy-900">Hasil Import</h1>
+          <h1 className="text-2xl font-bold text-[#171717]">Hasil Import</h1>
           <p className="text-sm text-muted-foreground mt-1">{filename}</p>
         </div>
 
@@ -594,7 +594,7 @@ export default function ImportPage() {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button asChild className="bg-brand hover:bg-brand-light text-white">
+          <Button asChild className="bg-[#C51F2A] hover:bg-[#A71922] text-white">
             <Link href="/admin/customers">
               <Users className="w-4 h-4 mr-2" />
               Lihat Data Pelanggan

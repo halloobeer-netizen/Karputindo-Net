@@ -175,7 +175,7 @@ export default function EditCustomerPage() {
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold text-navy-900">Edit Pelanggan</h1>
+        <h1 className="text-2xl font-bold text-[#171717]">Edit Pelanggan</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Ubah data pelanggan: <span className="font-medium text-foreground">{customer.fullName}</span>{' '}
           ({customer.customerNumber})

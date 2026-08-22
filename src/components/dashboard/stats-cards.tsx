@@ -6,9 +6,6 @@ import {
   UserX,
   UserPlus,
   Package,
-  MapPin,
-  MapPinOff,
-  CalendarPlus,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,69 +21,48 @@ const statsConfig = [
     key: 'totalCustomers' as const,
     label: 'Total Pelanggan',
     icon: Users,
-    color: 'text-gray-900',
-    bgColor: 'bg-gray-100',
+    color: 'text-[#C51F2A]',
+    bgColor: 'bg-red-50',
   },
   {
     key: 'activeCustomers' as const,
     label: 'Pelanggan Aktif',
     icon: UserCheck,
-    color: 'text-green-700',
+    color: 'text-green-600',
     bgColor: 'bg-green-50',
+  },
+  {
+    key: 'terminatedCustomers' as const,
+    label: 'Pelanggan Berhenti',
+    icon: UserX,
+    color: 'text-gray-500',
+    bgColor: 'bg-gray-100',
   },
   {
     key: 'installationCustomers' as const,
     label: 'Proses Pemasangan',
     icon: UserPlus,
-    color: 'text-orange-600',
+    color: 'text-orange-500',
     bgColor: 'bg-orange-50',
-  },
-  {
-    key: 'terminatedCustomers' as const,
-    label: 'Berhenti / Cancel',
-    icon: UserX,
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-  },
-  {
-    key: 'withCoordinates' as const,
-    label: 'Dengan Koordinat',
-    icon: MapPin,
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
-  },
-  {
-    key: 'withoutCoordinates' as const,
-    label: 'Tanpa Koordinat',
-    icon: MapPinOff,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
   },
   {
     key: 'totalPackages' as const,
     label: 'Paket Internet',
     icon: Package,
-    color: 'text-rose-600',
-    bgColor: 'bg-rose-50',
-  },
-  {
-    key: 'newInstallationsThisMonth' as const,
-    label: 'Pemasangan Bulan Ini',
-    icon: CalendarPlus,
-    color: 'text-violet-600',
-    bgColor: 'bg-violet-50',
+    color: 'text-[#C51F2A]',
+    bgColor: 'bg-red-50',
   },
 ];
 
 export function StatsCards({ stats, isLoading }: StatsCardsProps) {
   if (isLoading || !stats) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Card key={i} className="border-border/50">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Card key={i} className="bg-white rounded-xl shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-lg" />
+                <Skeleton className="w-11 h-11 rounded-xl" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-3 w-24" />
                   <Skeleton className="h-7 w-12" />
@@ -100,25 +76,21 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {statsConfig.map((config) => {
         const value = stats[config.key];
-        const isAlert = config.key === 'withoutCoordinates' && value > 0;
         return (
-          <Card
-            key={config.key}
-            className={`border-border/50 hover:shadow-md transition-shadow ${isAlert ? 'ring-2 ring-amber-400' : ''}`}
-          >
+          <Card key={config.key} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg ${config.bgColor} flex items-center justify-center shrink-0`}>
+                <div className={`w-11 h-11 rounded-xl ${config.bgColor} flex items-center justify-center shrink-0`}>
                   <config.icon className={`w-5 h-5 ${config.color}`} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-xs font-medium uppercase tracking-wide text-[#6B7280] truncate">
                     {config.label}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900 leading-tight">
+                  <p className="text-2xl font-bold text-[#171717] leading-tight">
                     {value.toLocaleString('id-ID')}
                   </p>
                 </div>

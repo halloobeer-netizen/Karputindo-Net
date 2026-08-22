@@ -8,7 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { AlertCircle, Loader2, Wifi } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const loginSchema = z.object({
@@ -44,8 +45,9 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       } else {
+        // Use full-page navigation for reliable redirect in proxy/iframe environments
         window.location.href = '/admin/dashboard';
-        return;
+        return; // Don't call setIsLoading(false) — page is navigating away
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.';
@@ -56,55 +58,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center relative overflow-hidden p-4"
-      style={{
-        background: 'linear-gradient(160deg, #0D0D0D 0%, #1A1A1A 50%, #111111 100%)',
-      }}
-    >
-      {/* Subtle red accent glows */}
-      <div
-        className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse, rgba(227,6,19,0.06) 0%, transparent 70%)',
-        }}
-      />
-      <div
-        className="absolute bottom-[-300px] right-[-100px] w-[600px] h-[600px] rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse, rgba(227,6,19,0.04) 0%, transparent 70%)',
-        }}
-      />
-
-      <div className="w-full max-w-[420px] relative z-10">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 p-4">
+      <div className="w-full max-w-md">
         {/* Logo & Brand */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-5">
-            <img
-              src="/images/karputindo-icon.png"
-              alt="Karputindo Net"
-              style={{ width: '80px', height: '80px', objectFit: 'contain', border: 'none', boxShadow: 'none' }}
-            />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm mb-4">
+            <Wifi className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            KARPUTINDO <span style={{ color: '#E30613' }}>NET</span>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            KARPUTINDO NET
           </h1>
-          <p className="text-gray-400 mt-1.5 text-sm">
+          <p className="text-navy-300 mt-2 text-sm">
             Customer Management System
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-2xl shadow-black/20 p-0 overflow-hidden">
-          <div className="px-8 pt-7 pb-2">
-            <h2 className="text-xl font-semibold text-gray-900">
+        <Card className="bg-white shadow-2xl border-0">
+          <CardHeader className="pb-4 pt-6 px-6">
+            <h2 className="text-xl font-semibold text-[#171717]">
               Masuk ke Akun Anda
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground">
               Masukkan email dan password untuk melanjutkan
             </p>
-          </div>
-          <div className="px-8 pb-8 pt-5">
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {error && (
                 <Alert variant="destructive">
@@ -114,42 +93,42 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700 text-sm font-medium">
-                  Email
-                </Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="admin@karputindo.net"
                   {...register('email')}
                   disabled={isLoading}
-                  className="h-11 border-gray-300 rounded-lg bg-gray-50/50 focus-visible:bg-white focus-visible:border-[#E30613] focus-visible:ring-[#E30613]/20 transition-all"
+                  className="h-11"
                 />
                 {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700 text-sm font-medium">
-                  Password
-                </Label>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   placeholder="Masukkan password"
                   {...register('password')}
                   disabled={isLoading}
-                  className="h-11 border-gray-300 rounded-lg bg-gray-50/50 focus-visible:bg-white focus-visible:border-[#E30613] focus-visible:ring-[#E30613]/20 transition-all"
+                  className="h-11"
                 />
                 {errors.password && (
-                  <p className="text-sm text-red-600">{errors.password.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-[#E30613] hover:bg-[#B8000C] text-white font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
+                className="w-full h-11 bg-[#C51F2A] hover:bg-[#A71922] text-white font-medium"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -162,10 +141,10 @@ export default function LoginPage() {
                 )}
               </Button>
             </form>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <p className="text-center text-gray-600 text-xs mt-8">
+        <p className="text-center text-navy-400 text-xs mt-6">
           &copy; {new Date().getFullYear()} Karputindo Net. All rights reserved.
         </p>
       </div>
