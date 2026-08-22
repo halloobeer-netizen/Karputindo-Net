@@ -4,8 +4,7 @@
 // and update DATABASE_URL to your PostgreSQL connection string.
 
 generator client {
-  provider = "prisma-client-js"
-  
+  provider = "prisma-client-js"  
 }
 
 datasource db {
