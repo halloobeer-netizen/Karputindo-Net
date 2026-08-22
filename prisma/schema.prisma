@@ -1,0 +1,139 @@
+// KARPUTINDO NET — Customer Management System
+// Prisma Schema
+// For production with PostgreSQL, change provider to "postgresql"
+// and update DATABASE_URL to your PostgreSQL connection string.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUM TYPES (represented as String in SQLite)
+// ============================================
+
+// User roles: SUPER_ADMIN, ADMIN
+// Customer status: ACTIVE, INSTALLATION, INACTIVE, TERMINATED, SUSPENDED, ISOLIR
+// Package status: ACTIVE, INACTIVE
+
+// ============================================
+// USER TABLE
+// ============================================
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN") // SUPER_ADMIN | ADMIN
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  auditLogs        AuditLog[]
+  createdCustomers Customer[]      @relation("CreatedBy")
+  updatedCustomers Customer[]      @relation("UpdatedBy")
+  importHistories  ImportHistory[]
+
+  @@map("users")
+}
+
+// ============================================
+// INTERNET PACKAGE TABLE
+// ============================================
+
+model InternetPackage {
+  id          String   @id @default(uuid())
+  name        String
+  speed       String
+  price       Float
+  description String?
+  status      String   @default("ACTIVE") // ACTIVE | INACTIVE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customers Customer[]
+
+  @@map("internet_packages")
+}
+
+// ============================================
+// CUSTOMER TABLE
+// ============================================
+
+model Customer {
+  id               String    @id @default(uuid())
+  customerNumber   String?   @unique
+  fullName         String
+  phone1           String?
+  phone2           String?
+  email            String?
+  address          String?
+  latitude         Float?
+  longitude        Float?
+  packageId        String?
+  packageExcel     String?
+  registrationFee  Float?
+  sales            String?
+  media            String?
+  technician       String?
+  spkNumber        String?
+  spkDate          DateTime?
+  installationDate DateTime?
+  terminationDate  DateTime?
+  status           String    @default("INSTALLATION") // ACTIVE | INSTALLATION | INACTIVE | TERMINATED | SUSPENDED | ISOLIR
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  createdBy        String?
+  updatedBy        String?
+
+  package    InternetPackage? @relation(fields: [packageId], references: [id])
+  created_by User?            @relation("CreatedBy", fields: [createdBy], references: [id])
+  updated_by User?            @relation("UpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("customers")
+}
+
+// ============================================
+// AUDIT LOG TABLE
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String // CREATE_CUSTOMER | UPDATE_CUSTOMER | DELETE_CUSTOMER | LOGIN | LOGOUT | IMPORT | EXPORT
+  entity    String // User | Customer | InternetPackage
+  entityId  String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// ============================================
+// IMPORT HISTORY TABLE
+// ============================================
+
+model ImportHistory {
+  id            String    @id @default(uuid())
+  filename      String
+  totalRows     Int
+  validRows     Int
+  importedRows  Int
+  skippedRows   Int
+  duplicateRows Int
+  failedRows    Int
+  importedBy    String
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+  status        String    @default("PROCESSING") // PROCESSING | COMPLETED | PARTIAL | FAILED
+
+  user User @relation(fields: [importedBy], references: [id])
+
+  @@map("import_history")
+}

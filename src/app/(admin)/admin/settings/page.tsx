@@ -1,0 +1,43 @@
+'use client';
+
+import Link from 'next/link';
+import { Settings, SlidersHorizontal } from 'lucide-react';
+
+export default function SettingsPage() {
+  return (
+    <div className="space-y-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/admin/dashboard" className="hover:text-foreground transition-colors">
+          Dashboard
+        </Link>
+        <span>/</span>
+        <span className="text-foreground font-medium">Pengaturan</span>
+      </div>
+
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-navy-900">Pengaturan</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Konfigurasi dan pengaturan sistem
+        </p>
+      </div>
+
+      {/* Coming Soon */}
+      <div className="bg-white rounded-lg border border-border p-12 text-center">
+        <div className="w-20 h-20 mx-auto rounded-full bg-muted/50 flex items-center justify-center mb-4">
+          <Settings className="w-10 h-10 text-muted-foreground/40" />
+        </div>
+        <h2 className="text-xl font-semibold text-foreground">Segera Hadir</h2>
+        <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+          Fitur pengaturan sistem sedang dalam pengembangan.
+          Anda akan dapat mengatur profil perusahaan, template invoice, dan preferensi lainnya.
+        </p>
+        <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <SlidersHorizontal className="w-4 h-4" />
+          <span>Konfigurasi perusahaan dan sistem</span>
+        </div>
+      </div>
+    </div>
+  );
+}
