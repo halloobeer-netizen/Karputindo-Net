@@ -7,26 +7,25 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireAuth();
+  await requireAuth();
 
   return (
-    <div className="flex min-h-screen">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block shrink-0">
+    <div className="flex min-h-screen bg-[#F7F8FA]">
+      <div className="hidden shrink-0 md:block">
         <AdminSidebar />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader />
-        <main className="flex-1 p-4 md:p-6 bg-[#F5F6F8]">
-          {children}
+        <main className="flex-1 bg-[#F7F8FA] p-4 md:p-5 lg:p-6">
+          <div className="mx-auto w-full max-w-[1600px]">
+            {children}
+          </div>
         </main>
-        {/* Footer */}
-        <footer className="border-t border-[#E5E7EB] bg-white px-6 py-3 mt-auto">
-          <div className="flex items-center justify-between text-xs text-gray-500">
+        <footer className="mt-auto border-t border-[#E7E8EC] bg-white px-5 py-3 md:px-7">
+          <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between text-[11px] text-gray-400">
             <span>&copy; {new Date().getFullYear()} Karputindo Net</span>
-            <span>Customer Management System v1.0</span>
+            <span>Customer Management System</span>
           </div>
         </footer>
       </div>
