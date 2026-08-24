@@ -54,24 +54,24 @@ export function AdminSidebar() {
   return (
     <aside
       className={cn(
-        'sticky top-0 relative flex h-screen flex-col overflow-hidden border-r border-[#1a1b20] bg-[#07090c] text-white shadow-[12px_0_32px_rgba(0,0,0,0.24)] transition-all duration-300',
-        collapsed ? 'w-[78px]' : 'w-[272px]'
+        'sticky top-0 relative flex h-screen flex-col overflow-hidden border-r border-[#1f2025] bg-[linear-gradient(180deg,#050607_0%,#08090c_42%,#0c080a_100%)] text-white shadow-[12px_0_32px_rgba(0,0,0,0.28)] transition-all duration-300',
+        collapsed ? 'w-[78px]' : 'w-[276px]'
       )}
     >
       {!collapsed && (
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -left-28 -top-16 h-72 w-80 rotate-45 bg-[linear-gradient(135deg,#050608_0%,#12080a_55%,#65070b_100%)] opacity-95" />
-          <div className="absolute -right-36 top-[25%] h-80 w-96 rotate-45 bg-[linear-gradient(135deg,#0a0b0e_0%,#220306_50%,#9e0a11_100%)] opacity-75" />
-          <div className="absolute -left-36 top-[53%] h-80 w-96 rotate-45 bg-[#14161a]/90" />
-          <div className="absolute -right-40 bottom-[7%] h-[26rem] w-[26rem] rotate-45 bg-[linear-gradient(135deg,#090a0d_0%,#5b0509_46%,#e00b15_100%)] opacity-95" />
-          <div className="absolute -left-28 -bottom-36 h-80 w-96 rotate-45 bg-[linear-gradient(135deg,#0b0c0f_0%,#350306_45%,#ca0812_100%)] opacity-95" />
+          <div className="absolute -left-36 -top-36 h-80 w-[28rem] rotate-45 bg-[linear-gradient(135deg,#090a0d_0%,#230305_52%,#8d090f_100%)] opacity-85" />
+          <div className="absolute -right-44 top-[21%] h-80 w-[30rem] rotate-45 bg-[linear-gradient(135deg,#090a0d_0%,#170204_47%,#b30912_100%)] opacity-65" />
+          <div className="absolute -left-40 top-[50%] h-80 w-[30rem] rotate-45 bg-[#15171b]/88" />
+          <div className="absolute -right-44 bottom-[5%] h-[28rem] w-[30rem] rotate-45 bg-[linear-gradient(135deg,#0a0b0e_0%,#470407_44%,#d50a14_100%)] opacity-90" />
+          <div className="absolute -left-36 -bottom-40 h-80 w-[28rem] rotate-45 bg-[linear-gradient(135deg,#090a0d_0%,#2b0305_42%,#a6070e_100%)] opacity-90" />
         </div>
       )}
 
       <div
         className={cn(
           'relative z-10 flex shrink-0 items-center bg-transparent',
-          collapsed ? 'h-[92px] justify-center px-2' : 'h-[154px] justify-center px-3'
+          collapsed ? 'h-[92px] justify-center px-2' : 'h-[150px] justify-center px-2'
         )}
       >
         {collapsed ? (
@@ -82,14 +82,14 @@ export function AdminSidebar() {
           />
         ) : (
           <img
-            src="/images/karputindo-logo-sidebar.png.png"
+            src="/images/karputindo-logo-sidebar.png"
             alt="Karputindo Internet Service Provider"
-            className="block h-auto w-[246px] max-w-full object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.42)]"
+            className="block h-auto w-[258px] max-w-full object-contain drop-shadow-[0_2px_2px_rgba(255,255,255,0.18)] drop-shadow-[0_10px_22px_rgba(0,0,0,0.45)]"
           />
         )}
       </div>
 
-      <nav className="relative z-10 flex-1 overflow-y-auto px-3 pb-3 pt-2">
+      <nav className="relative z-10 flex-1 overflow-y-auto px-3 pb-3 pt-1">
         <div className="space-y-1.5">
           {menuItems.map((item) => {
             const isActive = pathname === item.href ||
@@ -102,7 +102,7 @@ export function AdminSidebar() {
                 className={cn(
                   'group flex min-h-[54px] items-center gap-4 rounded-[12px] px-5 text-[14px] font-semibold transition-all duration-200',
                   isActive
-                    ? 'bg-[linear-gradient(90deg,#f30b19_0%,#dc0712_100%)] text-white shadow-[0_10px_28px_rgba(229,9,22,0.33)]'
+                    ? 'bg-[linear-gradient(90deg,#f20b18_0%,#d80712_100%)] text-white shadow-[0_10px_28px_rgba(229,9,22,0.34)]'
                     : 'text-[#f2f3f5] hover:bg-white/[0.07] hover:text-white',
                   collapsed && 'justify-center px-0'
                 )}
