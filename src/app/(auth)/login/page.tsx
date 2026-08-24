@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { AlertCircle, Loader2, Wifi } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const loginSchema = z.object({
@@ -45,9 +45,8 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       } else {
-        // Use full-page navigation for reliable redirect in proxy/iframe environments
         window.location.href = '/admin/dashboard';
-        return; // Don't call setIsLoading(false) — page is navigating away
+        return;
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.';
@@ -58,23 +57,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top,_#2a1115_0%,_#111318_42%,_#090a0c_100%)] p-4">
       <div className="w-full max-w-md">
-        {/* Logo & Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm mb-4">
-            <Wifi className="w-8 h-8 text-white" />
+        <div className="text-center mb-7">
+          <div className="mx-auto mb-4 flex h-[86px] w-full max-w-[320px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-5 shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
+            <img
+              src="/images/karputindo-logo-sidebar.png"
+              alt="Karputindo Internet Service Provider"
+              className="max-h-[70px] max-w-full object-contain"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            KARPUTINDO NET
+          <h1 className="text-2xl font-bold tracking-[0.04em] text-white">
+            KARPUTINDO <span className="text-[#C51F2A]">NET</span>
           </h1>
-          <p className="text-navy-300 mt-2 text-sm">
+          <p className="mt-2 text-sm text-gray-400">
             Customer Management System
           </p>
         </div>
 
-        {/* Login Card */}
-        <Card className="bg-white shadow-2xl border-0">
+        <Card className="border border-white/10 bg-white shadow-2xl shadow-black/30">
           <CardHeader className="pb-4 pt-6 px-6">
             <h2 className="text-xl font-semibold text-[#171717]">
               Masuk ke Akun Anda
@@ -100,7 +101,7 @@ export default function LoginPage() {
                   placeholder="admin@karputindo.net"
                   {...register('email')}
                   disabled={isLoading}
-                  className="h-11"
+                  className="h-11 focus-visible:ring-[#C51F2A]"
                 />
                 {errors.email && (
                   <p className="text-sm text-destructive">
@@ -117,7 +118,7 @@ export default function LoginPage() {
                   placeholder="Masukkan password"
                   {...register('password')}
                   disabled={isLoading}
-                  className="h-11"
+                  className="h-11 focus-visible:ring-[#C51F2A]"
                 />
                 {errors.password && (
                   <p className="text-sm text-destructive">
@@ -128,7 +129,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-[#C51F2A] hover:bg-[#A71922] text-white font-medium"
+                className="w-full h-11 bg-[#C51F2A] hover:bg-[#A71922] text-white font-semibold shadow-md shadow-[#C51F2A]/20"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -144,7 +145,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-navy-400 text-xs mt-6">
+        <p className="mt-6 text-center text-xs text-gray-500">
           &copy; {new Date().getFullYear()} Karputindo Net. All rights reserved.
         </p>
       </div>
