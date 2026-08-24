@@ -53,22 +53,39 @@ export function AdminSidebar() {
   return (
     <aside
       className={cn(
-        'sticky top-0 flex h-screen flex-col overflow-hidden border-r border-[#171A20] bg-[#0B0D10] text-white shadow-[10px_0_30px_rgba(0,0,0,0.08)] transition-all duration-300',
-        collapsed ? 'w-[72px]' : 'w-[228px]'
+        'sticky top-0 flex h-screen flex-col overflow-hidden border-r border-[#1B1D22] bg-[#080A0D] text-white shadow-[10px_0_30px_rgba(0,0,0,0.10)] transition-all duration-300',
+        collapsed ? 'w-[76px]' : 'w-[228px]'
       )}
     >
-      <div className={cn(
-        'flex h-[112px] shrink-0 items-center border-b border-[#181B21] bg-[#0B0D10]',
-        collapsed ? 'justify-center px-2' : 'justify-center px-4'
-      )}>
-        <img
-          src="/images/karputindo-logo-sidebar.png"
-          alt="Karputindo Internet Service Provider"
-          className={cn(
-            'object-contain transition-all duration-300',
-            collapsed ? 'max-h-11 max-w-[52px]' : 'max-h-[72px] max-w-[190px]'
-          )}
-        />
+      <div
+        className={cn(
+          'flex h-[118px] shrink-0 items-center border-b border-white/10 bg-[#080A0D]',
+          collapsed ? 'justify-center px-2' : 'px-4'
+        )}
+      >
+        {collapsed ? (
+          <img
+            src="/images/karputindo-icon.png"
+            alt="Karputindo"
+            className="h-12 w-12 rounded-xl object-cover shadow-[0_8px_24px_rgba(219,0,15,0.25)]"
+          />
+        ) : (
+          <div className="flex w-full items-center gap-3">
+            <img
+              src="/images/karputindo-icon.png"
+              alt="Karputindo"
+              className="h-[58px] w-[58px] shrink-0 rounded-xl object-cover shadow-[0_8px_24px_rgba(219,0,15,0.24)]"
+            />
+            <div className="min-w-0 leading-none">
+              <div className="whitespace-nowrap text-[19px] font-extrabold tracking-[-0.04em] text-white">
+                karputindo
+              </div>
+              <div className="mt-1.5 whitespace-nowrap text-[8px] font-medium tracking-[0.01em] text-gray-400">
+                Internet Service Provider
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 py-5">
@@ -84,15 +101,17 @@ export function AdminSidebar() {
                 className={cn(
                   'group flex min-h-[48px] items-center gap-3 rounded-[10px] px-4 text-[13px] font-semibold transition-all duration-200',
                   isActive
-                    ? 'bg-[linear-gradient(90deg,#EF101B_0%,#D9000C_100%)] text-white shadow-[0_8px_22px_rgba(229,9,20,0.24)]'
-                    : 'text-[#E5E7EB] hover:bg-[#171A20] hover:text-white',
+                    ? 'bg-[linear-gradient(90deg,#F10E1C_0%,#D9000C_100%)] text-white shadow-[0_8px_24px_rgba(235,10,25,0.25)]'
+                    : 'text-[#F1F3F5] hover:bg-[#17191E] hover:text-white',
                   collapsed && 'justify-center px-0'
                 )}
               >
-                <item.icon className={cn(
-                  'h-[19px] w-[19px] shrink-0 transition-colors',
-                  isActive ? 'text-white' : 'text-[#D1D5DB] group-hover:text-white'
-                )} />
+                <item.icon
+                  className={cn(
+                    'h-[19px] w-[19px] shrink-0 transition-colors',
+                    isActive ? 'text-white' : 'text-[#E1E3E6] group-hover:text-white'
+                  )}
+                />
                 {!collapsed && <span>{item.label}</span>}
               </Link>
             );
@@ -113,10 +132,10 @@ export function AdminSidebar() {
         </div>
       </nav>
 
-      <div className="shrink-0 border-t border-[#22252B] bg-[#0B0D10] p-3">
+      <div className="shrink-0 border-t border-white/10 bg-[#080A0D] p-3">
         {!collapsed && (
-          <div className="mb-3 flex items-center gap-3 border-b border-[#22252B] px-1 pb-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#D90B16] text-xs font-bold text-white">
+          <div className="mb-3 flex items-center gap-3 border-b border-white/10 px-1 pb-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E50918] text-xs font-bold text-white shadow-[0_4px_14px_rgba(229,9,24,0.28)]">
               {initial}
             </div>
             <div className="min-w-0">
@@ -131,7 +150,7 @@ export function AdminSidebar() {
             <TooltipTrigger asChild>
               <button
                 onClick={handleLogout}
-                className="flex w-full items-center justify-center rounded-lg py-2.5 text-gray-400 transition hover:bg-[#171A20] hover:text-red-400"
+                className="flex w-full items-center justify-center rounded-lg py-2.5 text-gray-400 transition hover:bg-[#17191E] hover:text-red-400"
               >
                 <LogOut className="h-5 w-5" />
               </button>
@@ -141,7 +160,7 @@ export function AdminSidebar() {
         ) : (
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-[13px] font-medium text-gray-300 transition hover:bg-[#171A20] hover:text-red-400"
+            className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-[13px] font-medium text-gray-300 transition hover:bg-[#17191E] hover:text-red-400"
           >
             <LogOut className="h-[19px] w-[19px]" />
             <span>Logout</span>
@@ -151,11 +170,18 @@ export function AdminSidebar() {
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            'mt-1 flex w-full items-center rounded-lg py-1.5 text-[10px] text-gray-600 transition hover:bg-[#171A20] hover:text-gray-300',
+            'mt-1 flex w-full items-center rounded-lg py-1.5 text-[10px] text-gray-600 transition hover:bg-[#17191E] hover:text-gray-300',
             collapsed ? 'justify-center' : 'justify-end gap-1 px-2'
           )}
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <><span>Tutup Sidebar</span><ChevronLeft className="h-4 w-4" /></>}
+          {collapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <>
+              <span>Tutup Sidebar</span>
+              <ChevronLeft className="h-4 w-4" />
+            </>
+          )}
         </button>
       </div>
     </aside>
