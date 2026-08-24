@@ -60,7 +60,7 @@ export function AdminSidebar() {
       <div
         className={cn(
           'flex h-[118px] shrink-0 items-center border-b border-white/10 bg-[linear-gradient(180deg,#0B0D11_0%,#07090C_100%)]',
-          collapsed ? 'justify-center px-2' : 'px-4'
+          collapsed ? 'justify-center px-2' : 'px-3'
         )}
       >
         {collapsed ? (
@@ -70,20 +70,12 @@ export function AdminSidebar() {
             className="h-12 w-12 rounded-xl object-cover shadow-[0_8px_24px_rgba(221,0,15,0.30)]"
           />
         ) : (
-          <div className="flex w-full items-center gap-3">
+          <div className="flex w-full items-center justify-center overflow-hidden rounded-xl bg-white/95 px-2 py-2 shadow-[0_8px_24px_rgba(0,0,0,0.20)]">
             <img
-              src="/images/karputindo-icon.png"
-              alt="Karputindo"
-              className="h-[58px] w-[58px] shrink-0 rounded-xl object-cover shadow-[0_8px_24px_rgba(221,0,15,0.28)]"
+              src="/images/karputindo-logo-sidebar.png.png"
+              alt="Karputindo Internet Service Provider"
+              className="h-[76px] w-full object-contain"
             />
-            <div className="min-w-0 leading-none">
-              <div className="whitespace-nowrap text-[19px] font-extrabold tracking-[-0.04em] text-white">
-                karputindo
-              </div>
-              <div className="mt-1.5 whitespace-nowrap text-[8px] font-medium tracking-[0.01em] text-[#B8BBC2]">
-                Internet Service Provider
-              </div>
-            </div>
           </div>
         )}
       </div>
