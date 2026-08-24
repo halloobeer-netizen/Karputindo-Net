@@ -5,7 +5,8 @@ import {
   UserCheck,
   UserX,
   UserPlus,
-  Package,
+  MapPin,
+  MapPinOff,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,56 +18,24 @@ interface StatsCardsProps {
 }
 
 const statsConfig = [
-  {
-    key: 'totalCustomers' as const,
-    label: 'Total Pelanggan',
-    icon: Users,
-    color: 'text-[#C51F2A]',
-    bgColor: 'bg-red-50',
-  },
-  {
-    key: 'activeCustomers' as const,
-    label: 'Pelanggan Aktif',
-    icon: UserCheck,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-  },
-  {
-    key: 'terminatedCustomers' as const,
-    label: 'Pelanggan Berhenti',
-    icon: UserX,
-    color: 'text-gray-500',
-    bgColor: 'bg-gray-100',
-  },
-  {
-    key: 'installationCustomers' as const,
-    label: 'Proses Pemasangan',
-    icon: UserPlus,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-50',
-  },
-  {
-    key: 'totalPackages' as const,
-    label: 'Paket Internet',
-    icon: Package,
-    color: 'text-[#C51F2A]',
-    bgColor: 'bg-red-50',
-  },
+  { key: 'totalCustomers' as const, label: 'Total Pelanggan', icon: Users, color: 'text-red-600', bgColor: 'bg-red-50', note: (s: DashboardStats) => 'Semua pelanggan' },
+  { key: 'activeCustomers' as const, label: 'Pelanggan Aktif', icon: UserCheck, color: 'text-green-600', bgColor: 'bg-green-50', note: (s: DashboardStats) => s.totalCustomers ? `${((s.activeCustomers / s.totalCustomers) * 100).toFixed(1)}% dari total` : '0% dari total' },
+  { key: 'installationCustomers' as const, label: 'Proses Pemasangan', icon: UserPlus, color: 'text-orange-600', bgColor: 'bg-orange-50', note: (s: DashboardStats) => s.totalCustomers ? `${((s.installationCustomers / s.totalCustomers) * 100).toFixed(1)}% dari total` : '0% dari total' },
+  { key: 'terminatedCustomers' as const, label: 'Berhenti / Cancel', icon: UserX, color: 'text-red-600', bgColor: 'bg-rose-50', note: (s: DashboardStats) => s.totalCustomers ? `${((s.terminatedCustomers / s.totalCustomers) * 100).toFixed(1)}% dari total` : '0% dari total' },
+  { key: 'withCoordinates' as const, label: 'Dengan Koordinat', icon: MapPin, color: 'text-blue-600', bgColor: 'bg-blue-50', note: (s: DashboardStats) => s.totalCustomers ? `${((s.withCoordinates / s.totalCustomers) * 100).toFixed(1)}% dari total` : '0% dari total' },
+  { key: 'withoutCoordinates' as const, label: 'Tanpa Koordinat', icon: MapPinOff, color: 'text-orange-600', bgColor: 'bg-orange-50', note: (s: DashboardStats) => s.totalCustomers ? `${((s.withoutCoordinates / s.totalCustomers) * 100).toFixed(1)}% dari total` : '0% dari total' },
 ];
 
 export function StatsCards({ stats, isLoading }: StatsCardsProps) {
   if (isLoading || !stats) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="bg-white rounded-xl shadow-sm">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i} className="rounded-xl bg-white">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <Skeleton className="w-11 h-11 rounded-xl" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-7 w-12" />
-                </div>
+                <Skeleton className="h-11 w-11 rounded-xl" />
+                <div className="flex-1 space-y-2"><Skeleton className="h-3 w-24" /><Skeleton className="h-7 w-12" /></div>
               </div>
             </CardContent>
           </Card>
@@ -76,23 +45,20 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-6">
       {statsConfig.map((config) => {
         const value = stats[config.key];
         return (
-          <Card key={config.key} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <Card key={config.key} className="group rounded-xl bg-white transition-all hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-11 h-11 rounded-xl ${config.bgColor} flex items-center justify-center shrink-0`}>
-                  <config.icon className={`w-5 h-5 ${config.color}`} />
+              <div className="flex items-start gap-3">
+                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${config.bgColor}`}>
+                  <config.icon className={`h-5 w-5 ${config.color}`} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium uppercase tracking-wide text-[#6B7280] truncate">
-                    {config.label}
-                  </p>
-                  <p className="text-2xl font-bold text-[#171717] leading-tight">
-                    {value.toLocaleString('id-ID')}
-                  </p>
+                  <p className="truncate text-[11px] font-medium text-gray-600">{config.label}</p>
+                  <p className="mt-0.5 text-[24px] font-extrabold leading-none text-[#171717]">{value.toLocaleString('id-ID')}</p>
+                  <p className="mt-2 truncate text-[10px] text-gray-400">{config.note(stats)}</p>
                 </div>
               </div>
             </CardContent>
