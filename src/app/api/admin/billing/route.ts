@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/session';
+import { getMikrotikProvider } from '@/lib/mikrotik/provider';
 
 function periodNow() {
   const d = new Date();
@@ -31,7 +32,12 @@ async function refreshOverdue() {
   const now = new Date();
   const candidates = await db.invoice.findMany({
     where: { status: 'UNPAID', dueDate: { lt: now } },
-    select: { id: true, customerId: true, dueDate: true, customer: { select: { gracePeriod: true } } },
+    select: {
+      id: true,
+      customerId: true,
+      dueDate: true,
+      customer: { select: { gracePeriod: true, pppoeUsername: true } },
+    },
   });
 
   const expired = candidates.filter((invoice) => {
@@ -48,6 +54,14 @@ async function refreshOverdue() {
     db.invoice.updateMany({ where: { id: { in: invoiceIds } }, data: { status: 'OVERDUE' } }),
     db.customer.updateMany({ where: { id: { in: customerIds } }, data: { serviceStatus: 'ISOLIR' } }),
   ]);
+
+  const provider = getMikrotikProvider();
+  await Promise.allSettled(
+    expired
+      .map((item) => item.customer.pppoeUsername?.trim())
+      .filter((username): username is string => Boolean(username))
+      .map((username) => provider.setPppoeService(username, 'ISOLIR'))
+  );
 }
 
 export async function GET(request: NextRequest) {
@@ -95,6 +109,74 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    let snapshot: Awaited<ReturnType<ReturnType<typeof getMikrotikProvider>['getSnapshot']>> | null = null;
+    let providerError: string | null = null;
+    try {
+      snapshot = await getMikrotikProvider().getSnapshot();
+    } catch (error) {
+      providerError = error instanceof Error ? error.message : 'MIKROTIK_UNAVAILABLE';
+    }
+
+    const sessionMap = new Map(
+      (snapshot?.sessions ?? []).map((session) => [session.username.toLowerCase(), session])
+    );
+
+    const invoicesWithNetwork = invoices.map((invoice) => {
+      const username = invoice.customer.pppoeUsername?.trim();
+      if (!username) {
+        return {
+          ...invoice,
+          networkSync: {
+            status: 'UNMAPPED' as const,
+            pppoeStatus: null,
+            mode: snapshot?.router.mode ?? null,
+            message: 'Username PPPoE belum diatur.',
+          },
+        };
+      }
+
+      if (providerError) {
+        return {
+          ...invoice,
+          networkSync: {
+            status: 'FAILED' as const,
+            pppoeStatus: null,
+            mode: null,
+            message: providerError,
+          },
+        };
+      }
+
+      const session = sessionMap.get(username.toLowerCase());
+      if (!session) {
+        return {
+          ...invoice,
+          networkSync: {
+            status: 'NOT_FOUND' as const,
+            pppoeStatus: null,
+            mode: snapshot?.router.mode ?? null,
+            message: 'PPPoE belum ditemukan di MikroTik.',
+          },
+        };
+      }
+
+      const desiredIsolated = invoice.customer.serviceStatus === 'ISOLIR';
+      const routerIsolated = session.status === 'ISOLATED' || session.status === 'DISABLED';
+      const synced = desiredIsolated === routerIsolated;
+
+      return {
+        ...invoice,
+        networkSync: {
+          status: synced ? ('SYNCED' as const) : ('PENDING' as const),
+          pppoeStatus: session.status,
+          mode: snapshot?.router.mode ?? null,
+          message: synced
+            ? 'Status layanan dan MikroTik sesuai.'
+            : 'Status layanan menunggu sinkronisasi MikroTik.',
+        },
+      };
+    });
+
     const count = (key: string) => grouped.find((g) => g.status === key)?._count._all ?? 0;
     const paidGroup = grouped.find((g) => g.status === 'PAID');
     const total = grouped.reduce((sum, g) => sum + g._count._all, 0);
@@ -107,9 +189,15 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json({
-      invoices,
+      invoices: invoicesWithNetwork,
       stats,
       period,
+      mikrotik: {
+        mode: snapshot?.router.mode ?? null,
+        routerStatus: snapshot?.router.status ?? 'OFFLINE',
+        generatedAt: snapshot?.generatedAt ?? null,
+        error: providerError,
+      },
       pagination: {
         page,
         pageSize,
@@ -138,16 +226,25 @@ export async function POST(request: NextRequest) {
     let processed = 0;
     for (const customer of customers) {
       const amount = customer.package?.price ?? parseImportedPrice(customer.packageExcel);
-      await db.invoice.upsert({
+      const existing = await db.invoice.findUnique({
         where: { customerId_period: { customerId: customer.id, period } },
-        update: { ...(amount > 0 ? { amount } : {}) },
-        create: {
-          customerId: customer.id,
-          period,
-          amount,
-          dueDate: dueDateFor(period, customer.dueDay ?? 10),
-        },
+        select: { id: true, status: true, amount: true },
       });
+
+      if (existing) {
+        if (existing.status !== 'PAID' && existing.amount === 0 && amount > 0) {
+          await db.invoice.update({ where: { id: existing.id }, data: { amount } });
+        }
+      } else {
+        await db.invoice.create({
+          data: {
+            customerId: customer.id,
+            period,
+            amount,
+            dueDate: dueDateFor(period, customer.dueDay ?? 10),
+          },
+        });
+      }
       processed++;
     }
 
