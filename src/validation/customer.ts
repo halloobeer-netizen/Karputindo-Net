@@ -20,6 +20,10 @@ export const customerCreateSchema = z.object({
   installationDate: z.string().optional().or(z.literal('')),
   terminationDate: z.string().optional().or(z.literal('')),
   status: z.string().min(1, 'Status wajib dipilih'),
+  dueDay: z.coerce.number().int().min(1, 'Tanggal jatuh tempo minimal 1').max(31, 'Tanggal jatuh tempo maksimal 31').optional().nullable(),
+  gracePeriod: z.coerce.number().int().min(0, 'Masa tenggang tidak boleh negatif').max(30, 'Masa tenggang maksimal 30 hari').optional().nullable(),
+  serviceStatus: z.enum(['ACTIVE', 'ISOLIR']).optional(),
+  pppoeUsername: z.string().optional().or(z.literal('')),
   notes: z.string().optional().or(z.literal('')),
 });
 
@@ -44,6 +48,10 @@ export function sanitizeCustomerInput(input: CustomerCreateInput) {
     spkDate: input.spkDate ? new Date(input.spkDate) : null,
     installationDate: input.installationDate ? new Date(input.installationDate) : null,
     terminationDate: input.terminationDate ? new Date(input.terminationDate) : null,
+    dueDay: input.dueDay ?? 10,
+    gracePeriod: input.gracePeriod ?? 3,
+    serviceStatus: input.serviceStatus ?? 'ACTIVE',
+    pppoeUsername: input.pppoeUsername || null,
     notes: input.notes || null,
   };
 }
