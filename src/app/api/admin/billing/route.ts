@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/session';
 
 function periodNow() {
   const d = new Date();
@@ -14,73 +15,100 @@ function dueDateFor(period: string, dueDay = 10) {
 
 async function refreshOverdue() {
   const now = new Date();
-  const unpaid = await prisma.invoice.findMany({ where: { status: 'UNPAID' }, include: { customer: true } });
+  const unpaid = await db.invoice.findMany({ where: { status: 'UNPAID' }, include: { customer: true } });
+
   for (const invoice of unpaid) {
     const grace = invoice.customer.gracePeriod ?? 3;
     const isolateAt = new Date(invoice.dueDate);
     isolateAt.setDate(isolateAt.getDate() + grace);
+
     if (now > isolateAt) {
-      await prisma.$transaction([
-        prisma.invoice.update({ where: { id: invoice.id }, data: { status: 'OVERDUE' } }),
-        prisma.customer.update({ where: { id: invoice.customerId }, data: { serviceStatus: 'ISOLIR' } }),
+      await db.$transaction([
+        db.invoice.update({ where: { id: invoice.id }, data: { status: 'OVERDUE' } }),
+        db.customer.update({ where: { id: invoice.customerId }, data: { serviceStatus: 'ISOLIR' } }),
       ]);
     }
   }
 }
 
 export async function GET(request: NextRequest) {
-  await refreshOverdue();
-  const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status') || '';
-  const search = searchParams.get('search') || '';
-  const period = searchParams.get('period') || periodNow();
+  try {
+    await requireAuth();
+    await refreshOverdue();
 
-  const invoices = await prisma.invoice.findMany({
-    where: {
-      period,
-      ...(status ? { status } : {}),
-      ...(search ? { customer: { OR: [
-        { fullName: { contains: search, mode: 'insensitive' } },
-        { customerNumber: { contains: search, mode: 'insensitive' } },
-        { pppoeUsername: { contains: search, mode: 'insensitive' } },
-      ] } } : {}),
-    },
-    include: { customer: { include: { package: true } } },
-    orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
-  });
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status') || '';
+    const search = searchParams.get('search') || '';
+    const period = searchParams.get('period') || periodNow();
 
-  const all = await prisma.invoice.findMany({ where: { period }, select: { status: true, amount: true } });
-  const stats = {
-    total: all.length,
-    unpaid: all.filter(i => i.status === 'UNPAID').length,
-    overdue: all.filter(i => i.status === 'OVERDUE').length,
-    paid: all.filter(i => i.status === 'PAID').length,
-    revenue: all.filter(i => i.status === 'PAID').reduce((sum, i) => sum + i.amount, 0),
-  };
-  return NextResponse.json({ invoices, stats, period });
+    const invoices = await db.invoice.findMany({
+      where: {
+        period,
+        ...(status ? { status } : {}),
+        ...(search
+          ? {
+              customer: {
+                OR: [
+                  { fullName: { contains: search, mode: 'insensitive' } },
+                  { customerNumber: { contains: search, mode: 'insensitive' } },
+                  { pppoeUsername: { contains: search, mode: 'insensitive' } },
+                ],
+              },
+            }
+          : {}),
+      },
+      include: { customer: { include: { package: true } } },
+      orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
+    });
+
+    const all = await db.invoice.findMany({ where: { period }, select: { status: true, amount: true } });
+    const stats = {
+      total: all.length,
+      unpaid: all.filter((i) => i.status === 'UNPAID').length,
+      overdue: all.filter((i) => i.status === 'OVERDUE').length,
+      paid: all.filter((i) => i.status === 'PAID').length,
+      revenue: all.filter((i) => i.status === 'PAID').reduce((sum, i) => sum + i.amount, 0),
+    };
+
+    return NextResponse.json({ invoices, stats, period });
+  } catch (error) {
+    if ((error as any)?.message?.includes('redirect')) throw error;
+    console.error('Billing GET error:', error);
+    return NextResponse.json({ error: 'Gagal memuat billing' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const period = body.period || periodNow();
-  const customers = await prisma.customer.findMany({
-    where: { status: { notIn: ['TERMINATED', 'INACTIVE'] } },
-    include: { package: true },
-  });
-  let created = 0;
-  for (const customer of customers) {
-    const amount = customer.package?.price ?? 0;
-    await prisma.invoice.upsert({
-      where: { customerId_period: { customerId: customer.id, period } },
-      update: {},
-      create: {
-        customerId: customer.id,
-        period,
-        amount,
-        dueDate: dueDateFor(period, customer.dueDay ?? 10),
-      },
+  try {
+    await requireAuth();
+    const body = await request.json();
+    const period = body.period || periodNow();
+
+    const customers = await db.customer.findMany({
+      where: { status: { notIn: ['TERMINATED', 'INACTIVE'] } },
+      include: { package: true },
     });
-    created++;
+
+    let processed = 0;
+    for (const customer of customers) {
+      const amount = customer.package?.price ?? 0;
+      await db.invoice.upsert({
+        where: { customerId_period: { customerId: customer.id, period } },
+        update: {},
+        create: {
+          customerId: customer.id,
+          period,
+          amount,
+          dueDate: dueDateFor(period, customer.dueDay ?? 10),
+        },
+      });
+      processed++;
+    }
+
+    return NextResponse.json({ success: true, processed, period });
+  } catch (error) {
+    if ((error as any)?.message?.includes('redirect')) throw error;
+    console.error('Billing POST error:', error);
+    return NextResponse.json({ error: 'Gagal membuat tagihan' }, { status: 500 });
   }
-  return NextResponse.json({ success: true, processed: created, period });
 }
