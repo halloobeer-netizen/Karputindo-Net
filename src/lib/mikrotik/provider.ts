@@ -1,5 +1,6 @@
 export type MikrotikMode = 'SIMULATION' | 'LIVE';
-export type PppoeStatus = 'ONLINE' | 'OFFLINE' | 'ISOLATED';
+export type PppoeStatus = 'ONLINE' | 'OFFLINE' | 'ISOLATED' | 'DISABLED';
+export type DesiredServiceStatus = 'ACTIVE' | 'ISOLIR';
 
 export interface MikrotikRouterSummary {
   id: string;
@@ -32,8 +33,17 @@ export interface MikrotikSnapshot {
   generatedAt: string;
 }
 
+export interface MikrotikControlResult {
+  success: boolean;
+  mode: MikrotikMode;
+  username: string;
+  desiredStatus: DesiredServiceStatus;
+  message: string;
+}
+
 export interface MikrotikProvider {
   getSnapshot(): Promise<MikrotikSnapshot>;
+  setPppoeService(username: string, status: DesiredServiceStatus): Promise<MikrotikControlResult>;
 }
 
 const simulationSessions: MikrotikPppoeSession[] = [
@@ -124,10 +134,34 @@ class SimulationMikrotikProvider implements MikrotikProvider {
       generatedAt: new Date().toISOString(),
     };
   }
+
+  async setPppoeService(username: string, status: DesiredServiceStatus): Promise<MikrotikControlResult> {
+    return {
+      success: true,
+      mode: 'SIMULATION',
+      username,
+      desiredStatus: status,
+      message: `Simulasi: PPPoE ${username} akan diubah ke ${status}.`,
+    };
+  }
 }
 
-// Later, LiveMikrotikProvider can implement the same interface using RouterOS API.
-// The dashboard/API will not need to change when switching providers.
+class LiveMikrotikProvider implements MikrotikProvider {
+  private notConfigured(): never {
+    throw new Error('MIKROTIK_LIVE_NOT_CONFIGURED');
+  }
+
+  async getSnapshot(): Promise<MikrotikSnapshot> {
+    return this.notConfigured();
+  }
+
+  async setPppoeService(_username: string, _status: DesiredServiceStatus): Promise<MikrotikControlResult> {
+    return this.notConfigured();
+  }
+}
+
 export function getMikrotikProvider(): MikrotikProvider {
+  const mode = (process.env.MIKROTIK_MODE || 'SIMULATION').toUpperCase();
+  if (mode === 'LIVE') return new LiveMikrotikProvider();
   return new SimulationMikrotikProvider();
 }
