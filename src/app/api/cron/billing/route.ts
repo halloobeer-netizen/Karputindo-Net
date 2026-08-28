@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getMikrotikProvider } from '@/lib/mikrotik/provider';
 
 function periodNow() {
   const d = new Date();
@@ -44,26 +45,38 @@ export async function GET(request: NextRequest) {
     let createdOrUpdated = 0;
     for (const customer of customers) {
       const amount = customer.package?.price ?? parseImportedPrice(customer.packageExcel);
-      await db.invoice.upsert({
+      const existing = await db.invoice.findUnique({
         where: { customerId_period: { customerId: customer.id, period } },
-        update: {
-          ...(amount > 0 ? { amount } : {}),
-          dueDate: dueDateFor(period, customer.dueDay ?? 10),
-        },
-        create: {
-          customerId: customer.id,
-          period,
-          amount,
-          dueDate: dueDateFor(period, customer.dueDay ?? 10),
-        },
+        select: { id: true, amount: true, status: true },
       });
+
+      if (!existing) {
+        await db.invoice.create({
+          data: {
+            customerId: customer.id,
+            period,
+            amount,
+            dueDate: dueDateFor(period, customer.dueDay ?? 10),
+          },
+        });
+      } else if (existing.status !== 'PAID' && existing.amount === 0 && amount > 0) {
+        await db.invoice.update({
+          where: { id: existing.id },
+          data: { amount },
+        });
+      }
       createdOrUpdated++;
     }
 
     const now = new Date();
     const unpaid = await db.invoice.findMany({
       where: { status: 'UNPAID', dueDate: { lt: now } },
-      select: { id: true, customerId: true, dueDate: true, customer: { select: { gracePeriod: true } } },
+      select: {
+        id: true,
+        customerId: true,
+        dueDate: true,
+        customer: { select: { gracePeriod: true, pppoeUsername: true } },
+      },
     });
 
     const expired = unpaid.filter((invoice) => {
@@ -72,6 +85,9 @@ export async function GET(request: NextRequest) {
       return now > isolateAt;
     });
 
+    let networkSynced = 0;
+    let networkFailed = 0;
+
     if (expired.length) {
       const invoiceIds = expired.map((item) => item.id);
       const customerIds = [...new Set(expired.map((item) => item.customerId))];
@@ -79,6 +95,18 @@ export async function GET(request: NextRequest) {
         db.invoice.updateMany({ where: { id: { in: invoiceIds } }, data: { status: 'OVERDUE' } }),
         db.customer.updateMany({ where: { id: { in: customerIds } }, data: { serviceStatus: 'ISOLIR' } }),
       ]);
+
+      const provider = getMikrotikProvider();
+      for (const item of expired) {
+        if (!item.customer.pppoeUsername) continue;
+        try {
+          await provider.setPppoeService(item.customer.pppoeUsername, 'ISOLIR');
+          networkSynced++;
+        } catch (error) {
+          networkFailed++;
+          console.error(`Automatic MikroTik isolir failed for ${item.customer.pppoeUsername}:`, error);
+        }
+      }
     }
 
     return NextResponse.json({
@@ -86,6 +114,8 @@ export async function GET(request: NextRequest) {
       period,
       customersProcessed: createdOrUpdated,
       isolated: expired.length,
+      networkSynced,
+      networkFailed,
       ranAt: new Date().toISOString(),
     });
   } catch (error) {
