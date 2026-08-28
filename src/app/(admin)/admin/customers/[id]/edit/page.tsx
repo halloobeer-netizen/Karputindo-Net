@@ -9,10 +9,6 @@ import { CustomerForm } from '@/components/customers/customer-form';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// ============================================
-// Types
-// ============================================
-
 interface CustomerData {
   id: string;
   customerNumber: string;
@@ -34,12 +30,12 @@ interface CustomerData {
   installationDate: string | null;
   terminationDate: string | null;
   status: string;
+  dueDay: number | null;
+  gracePeriod: number | null;
+  serviceStatus: string | null;
+  pppoeUsername: string | null;
   notes: string | null;
 }
-
-// ============================================
-// Helpers
-// ============================================
 
 function toDateString(value: string | null): string {
   if (!value) return '';
@@ -71,49 +67,27 @@ function mapCustomerToForm(data: CustomerData): Record<string, any> {
     installationDate: toDateString(data.installationDate),
     terminationDate: toDateString(data.terminationDate),
     status: data.status ?? 'ACTIVE',
+    dueDay: data.dueDay ?? 10,
+    gracePeriod: data.gracePeriod ?? 3,
+    serviceStatus: data.serviceStatus ?? 'ACTIVE',
+    pppoeUsername: data.pppoeUsername ?? '',
     notes: data.notes ?? '',
   };
 }
-
-// ============================================
-// Loading Skeleton
-// ============================================
 
 function EditSkeleton() {
   return (
     <div className="space-y-6">
       <Skeleton className="h-4 w-64" />
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-72" />
-      </div>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="bg-white rounded-xl border border-border p-6 space-y-4">
-          <Skeleton className="h-6 w-40" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-          </div>
-        </div>
-      ))}
+      <div className="space-y-2"><Skeleton className="h-8 w-48" /><Skeleton className="h-4 w-72" /></div>
+      {[1, 2, 3, 4, 5].map((i) => <div key={i} className="bg-white rounded-xl border border-border p-6 space-y-4"><Skeleton className="h-6 w-40" /><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><Skeleton className="h-9 w-full" /><Skeleton className="h-9 w-full" /></div></div>)}
     </div>
   );
 }
 
-// ============================================
-// Page Component
-// ============================================
-
 export default function EditCustomerPage() {
   const params = useParams();
   const id = params.id as string;
-
   const [customer, setCustomer] = useState<CustomerData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -123,17 +97,8 @@ export default function EditCustomerPage() {
       try {
         const res = await fetch(`/api/admin/customers/${id}`);
         const json = await res.json();
-
-        if (json.success && json.data) {
-          setCustomer(json.data);
-        } else {
-          setNotFound(true);
-        }
-      } catch {
-        setNotFound(true);
-      } finally {
-        setIsLoading(false);
-      }
+        if (json.success && json.data) setCustomer(json.data); else setNotFound(true);
+      } catch { setNotFound(true); } finally { setIsLoading(false); }
     }
     fetchCustomer();
   }, [id]);
@@ -141,47 +106,14 @@ export default function EditCustomerPage() {
   if (isLoading) return <EditSkeleton />;
 
   if (notFound || !customer) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-          <User className="w-7 h-7 text-muted-foreground" />
-        </div>
-        <div className="text-center">
-          <p className="text-lg font-medium text-foreground">Pelanggan tidak ditemukan</p>
-          <p className="text-sm text-muted-foreground mt-1">Data pelanggan yang Anda cari tidak tersedia.</p>
-        </div>
-        <Button asChild variant="outline">
-          <Link href="/admin/customers">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Kembali ke Daftar Pelanggan
-          </Link>
-        </Button>
-      </div>
-    );
+    return <div className="flex flex-col items-center justify-center py-20 gap-4"><div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center"><User className="w-7 h-7 text-muted-foreground" /></div><div className="text-center"><p className="text-lg font-medium text-foreground">Pelanggan tidak ditemukan</p><p className="text-sm text-muted-foreground mt-1">Data pelanggan yang Anda cari tidak tersedia.</p></div><Button asChild variant="outline"><Link href="/admin/customers"><ArrowLeft className="w-4 h-4 mr-2" />Kembali ke Daftar Pelanggan</Link></Button></div>;
   }
 
   const formDefaults = mapCustomerToForm(customer);
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/admin/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link>
-        <span>/</span>
-        <Link href="/admin/customers" className="hover:text-foreground transition-colors">Pelanggan</Link>
-        <span>/</span>
-        <Link href={`/admin/customers/${id}`} className="hover:text-foreground transition-colors">{customer.fullName}</Link>
-        <span>/</span>
-        <span className="text-foreground font-medium">Edit</span>
-      </div>
-
-      <div>
-        <h1 className="text-2xl font-bold text-[#171717]">Edit Pelanggan</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Ubah data pelanggan: <span className="font-medium text-foreground">{customer.fullName}</span>{' '}
-          ({customer.customerNumber})
-        </p>
-      </div>
-
+      <div className="flex items-center gap-2 text-sm text-muted-foreground"><Link href="/admin/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link><span>/</span><Link href="/admin/customers" className="hover:text-foreground transition-colors">Pelanggan</Link><span>/</span><Link href={`/admin/customers/${id}`} className="hover:text-foreground transition-colors">{customer.fullName}</Link><span>/</span><span className="text-foreground font-medium">Edit</span></div>
+      <div><h1 className="text-2xl font-bold text-[#171717]">Edit Pelanggan</h1><p className="text-sm text-muted-foreground mt-1">Ubah data pelanggan: <span className="font-medium text-foreground">{customer.fullName}</span> ({customer.customerNumber})</p></div>
       <CustomerForm defaultValues={formDefaults} customerId={id} />
     </div>
   );
