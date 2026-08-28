@@ -1,10 +1,5 @@
-// KARPUTINDO NET — Customer Management System
-// Prisma Schema
-// For production with PostgreSQL, change provider to "postgresql"
-// and update DATABASE_URL to your PostgreSQL connection string.
-
 generator client {
-  provider = "prisma-client-js"  
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -12,38 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// ENUM TYPES (represented as String in SQLite)
-// ============================================
-
-// User roles: SUPER_ADMIN, ADMIN
-// Customer status: ACTIVE, INSTALLATION, INACTIVE, TERMINATED, SUSPENDED, ISOLIR
-// Package status: ACTIVE, INACTIVE
-
-// ============================================
-// USER TABLE
-// ============================================
-
 model User {
   id           String   @id @default(uuid())
   name         String
   email        String   @unique
   passwordHash String
-  role         String   @default("ADMIN") // SUPER_ADMIN | ADMIN
+  role         String   @default("ADMIN")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   auditLogs        AuditLog[]
-  createdCustomers Customer[]      @relation("CreatedBy")
-  updatedCustomers Customer[]      @relation("UpdatedBy")
+  createdCustomers Customer[] @relation("CreatedBy")
+  updatedCustomers Customer[] @relation("UpdatedBy")
   importHistories  ImportHistory[]
 
   @@map("users")
 }
-
-// ============================================
-// INTERNET PACKAGE TABLE
-// ============================================
 
 model InternetPackage {
   id          String   @id @default(uuid())
@@ -51,7 +30,7 @@ model InternetPackage {
   speed       String
   price       Float
   description String?
-  status      String   @default("ACTIVE") // ACTIVE | INACTIVE
+  status      String   @default("ACTIVE")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -59,10 +38,6 @@ model InternetPackage {
 
   @@map("internet_packages")
 }
-
-// ============================================
-// CUSTOMER TABLE
-// ============================================
 
 model Customer {
   id               String    @id @default(uuid())
@@ -84,7 +59,11 @@ model Customer {
   spkDate          DateTime?
   installationDate DateTime?
   terminationDate  DateTime?
-  status           String    @default("INSTALLATION") // ACTIVE | INSTALLATION | INACTIVE | TERMINATED | SUSPENDED | ISOLIR
+  status           String    @default("INSTALLATION")
+  dueDay           Int?      @default(10)
+  gracePeriod      Int?      @default(3)
+  serviceStatus    String?   @default("ACTIVE")
+  pppoeUsername    String?
   notes            String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -94,19 +73,37 @@ model Customer {
   package    InternetPackage? @relation(fields: [packageId], references: [id])
   created_by User?            @relation("CreatedBy", fields: [createdBy], references: [id])
   updated_by User?            @relation("UpdatedBy", fields: [updatedBy], references: [id])
+  invoices   Invoice[]
 
   @@map("customers")
 }
 
-// ============================================
-// AUDIT LOG TABLE
-// ============================================
+model Invoice {
+  id         String   @id @default(uuid())
+  customerId String
+  period     String
+  amount     Float
+  dueDate    DateTime
+  status     String   @default("UNPAID")
+  paidAt     DateTime?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, period])
+  @@index([status])
+  @@index([dueDate])
+  @@index([customerId])
+  @@map("invoices")
+}
 
 model AuditLog {
   id        String   @id @default(uuid())
   userId    String
-  action    String // CREATE_CUSTOMER | UPDATE_CUSTOMER | DELETE_CUSTOMER | LOGIN | LOGOUT | IMPORT | EXPORT
-  entity    String // User | Customer | InternetPackage
+  action    String
+  entity    String
   entityId  String?
   createdAt DateTime @default(now())
 
@@ -114,10 +111,6 @@ model AuditLog {
 
   @@map("audit_logs")
 }
-
-// ============================================
-// IMPORT HISTORY TABLE
-// ============================================
 
 model ImportHistory {
   id            String    @id @default(uuid())
@@ -131,7 +124,7 @@ model ImportHistory {
   importedBy    String
   startedAt     DateTime  @default(now())
   finishedAt    DateTime?
-  status        String    @default("PROCESSING") // PROCESSING | COMPLETED | PARTIAL | FAILED
+  status        String    @default("PROCESSING")
 
   user User @relation(fields: [importedBy], references: [id])
 
