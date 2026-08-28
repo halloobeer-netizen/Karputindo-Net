@@ -5,13 +5,14 @@ import { Prisma } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireAuth();
+    await requireAuth();
     const { searchParams } = request.nextUrl;
 
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '25')));
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || '';
+    const coordinates = searchParams.get('coordinates') || '';
 
     const where: Prisma.CustomerWhereInput = {};
 
@@ -29,6 +30,23 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       where.status = status;
+    }
+
+    if (coordinates === 'missing') {
+      const missingCoordinates: Prisma.CustomerWhereInput = {
+        OR: [{ latitude: null }, { longitude: null }],
+      };
+
+      if (where.OR) {
+        const searchOr = where.OR;
+        delete where.OR;
+        where.AND = [{ OR: searchOr }, missingCoordinates];
+      } else {
+        Object.assign(where, missingCoordinates);
+      }
+    } else if (coordinates === 'complete') {
+      where.latitude = { not: null };
+      where.longitude = { not: null };
     }
 
     const [customers, totalItems] = await Promise.all([
