@@ -6,7 +6,7 @@ import { StatsCards } from '@/components/dashboard/stats-cards';
 import { GrowthChart } from '@/components/dashboard/growth-chart';
 import type { DashboardStats, CustomerGrowthData, RecentCustomer, StatusDistribution } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, ArrowRight, FileSpreadsheet, Map, Package, UserPlus, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, FileSpreadsheet, Map, Package, UserPlus } from 'lucide-react';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -70,7 +70,7 @@ export default function DashboardPage() {
               <p className="text-xs text-gray-500">{stats.withoutCoordinates} pelanggan belum memiliki koordinat peta</p>
             </div>
           </div>
-          <Link href="/admin/customers" className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 px-4 py-2 text-xs font-semibold text-[#E50914] transition hover:bg-red-50">
+          <Link href="/admin/customers/missing-coordinates" className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 px-4 py-2 text-xs font-semibold text-[#E50914] transition hover:bg-red-50">
             Lihat & Perbaiki <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
