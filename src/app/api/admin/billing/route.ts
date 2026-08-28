@@ -13,57 +13,41 @@ function dueDateFor(period: string, dueDay = 10) {
   return new Date(year, month - 1, Math.min(dueDay, lastDay), 23, 59, 59);
 }
 
-function parsePackageExcelPrice(packageExcel?: string | null) {
-  if (!packageExcel) return 0;
-
-  // Most imported package names contain the monthly base price immediately
-  // before "exc PPN", e.g. "Home 20 199.000 exc PPN 11%".
-  const explicitPrice = packageExcel.match(/(\d{2,3}[.,]\d{3,4})\s*exc\s*PPN/i)?.[1];
-  if (explicitPrice) {
-    let digits = explicitPrice.replace(/\D/g, '');
-
-    // Correct a known imported typo such as 237.5000 -> 237.500.
-    if (digits.length === 7 && digits.endsWith('0')) {
-      digits = digits.slice(0, 6);
-    }
-
-    const amount = Number(digits);
-    return Number.isFinite(amount) ? amount : 0;
+function parseImportedPrice(value?: string | null) {
+  if (!value) return 0;
+  const beforeTax = value.split(/exc\s*ppn/i)[0];
+  const tokens = beforeTax.match(/\d{2,3}(?:[.,]\d{3,4})/g);
+  if (tokens?.length) {
+    const token = tokens[tokens.length - 1];
+    const normalized = Number(token.replace(/[.,]/g, '').slice(0, 6));
+    if (normalized >= 50000) return normalized;
   }
-
-  // Fallback for imported names that only encode price using "k",
-  // e.g. "wireless 280k 10Mbps".
-  const kPrice = packageExcel.match(/(?:^|\s)(\d{2,3})k(?:\s|$)/i)?.[1];
-  if (kPrice) return Number(kPrice) * 1000;
-
+  const kMatch = value.match(/(?:^|\s)(\d{2,4})k(?:\s|$)/i);
+  if (kMatch) return Number(kMatch[1]) * 1000;
   return 0;
-}
-
-function resolveCustomerAmount(customer: {
-  package?: { price: number } | null;
-  packageExcel?: string | null;
-}) {
-  const linkedPrice = customer.package?.price ?? 0;
-  if (linkedPrice > 0) return linkedPrice;
-  return parsePackageExcelPrice(customer.packageExcel);
 }
 
 async function refreshOverdue() {
   const now = new Date();
-  const unpaid = await db.invoice.findMany({ where: { status: 'UNPAID' }, include: { customer: true } });
+  const candidates = await db.invoice.findMany({
+    where: { status: 'UNPAID', dueDate: { lt: now } },
+    select: { id: true, customerId: true, dueDate: true, customer: { select: { gracePeriod: true } } },
+  });
 
-  for (const invoice of unpaid) {
-    const grace = invoice.customer.gracePeriod ?? 3;
+  const expired = candidates.filter((invoice) => {
     const isolateAt = new Date(invoice.dueDate);
-    isolateAt.setDate(isolateAt.getDate() + grace);
+    isolateAt.setDate(isolateAt.getDate() + (invoice.customer.gracePeriod ?? 3));
+    return now > isolateAt;
+  });
 
-    if (now > isolateAt) {
-      await db.$transaction([
-        db.invoice.update({ where: { id: invoice.id }, data: { status: 'OVERDUE' } }),
-        db.customer.update({ where: { id: invoice.customerId }, data: { serviceStatus: 'ISOLIR' } }),
-      ]);
-    }
-  }
+  if (!expired.length) return;
+
+  const invoiceIds = expired.map((item) => item.id);
+  const customerIds = [...new Set(expired.map((item) => item.customerId))];
+  await db.$transaction([
+    db.invoice.updateMany({ where: { id: { in: invoiceIds } }, data: { status: 'OVERDUE' } }),
+    db.customer.updateMany({ where: { id: { in: customerIds } }, data: { serviceStatus: 'ISOLIR' } }),
+  ]);
 }
 
 export async function GET(request: NextRequest) {
@@ -75,37 +59,64 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || '';
     const search = searchParams.get('search') || '';
     const period = searchParams.get('period') || periodNow();
+    const page = Math.max(1, Number(searchParams.get('page') || 1));
+    const pageSize = Math.min(100, Math.max(10, Number(searchParams.get('pageSize') || 50)));
 
-    const invoices = await db.invoice.findMany({
-      where: {
-        period,
-        ...(status ? { status } : {}),
-        ...(search
-          ? {
-              customer: {
-                OR: [
-                  { fullName: { contains: search, mode: 'insensitive' } },
-                  { customerNumber: { contains: search, mode: 'insensitive' } },
-                  { pppoeUsername: { contains: search, mode: 'insensitive' } },
-                ],
-              },
-            }
-          : {}),
-      },
-      include: { customer: { include: { package: true } } },
-      orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
-    });
-
-    const all = await db.invoice.findMany({ where: { period }, select: { status: true, amount: true } });
-    const stats = {
-      total: all.length,
-      unpaid: all.filter((i) => i.status === 'UNPAID').length,
-      overdue: all.filter((i) => i.status === 'OVERDUE').length,
-      paid: all.filter((i) => i.status === 'PAID').length,
-      revenue: all.filter((i) => i.status === 'PAID').reduce((sum, i) => sum + i.amount, 0),
+    const where = {
+      period,
+      ...(status ? { status } : {}),
+      ...(search
+        ? {
+            customer: {
+              OR: [
+                { fullName: { contains: search, mode: 'insensitive' as const } },
+                { customerNumber: { contains: search, mode: 'insensitive' as const } },
+                { pppoeUsername: { contains: search, mode: 'insensitive' as const } },
+              ],
+            },
+          }
+        : {}),
     };
 
-    return NextResponse.json({ invoices, stats, period });
+    const [invoices, filteredTotal, grouped] = await Promise.all([
+      db.invoice.findMany({
+        where,
+        include: { customer: { include: { package: true } } },
+        orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      db.invoice.count({ where }),
+      db.invoice.groupBy({
+        by: ['status'],
+        where: { period },
+        _count: { _all: true },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const count = (key: string) => grouped.find((g) => g.status === key)?._count._all ?? 0;
+    const paidGroup = grouped.find((g) => g.status === 'PAID');
+    const total = grouped.reduce((sum, g) => sum + g._count._all, 0);
+    const stats = {
+      total,
+      unpaid: count('UNPAID'),
+      overdue: count('OVERDUE'),
+      paid: count('PAID'),
+      revenue: paidGroup?._sum.amount ?? 0,
+    };
+
+    return NextResponse.json({
+      invoices,
+      stats,
+      period,
+      pagination: {
+        page,
+        pageSize,
+        total: filteredTotal,
+        totalPages: Math.max(1, Math.ceil(filteredTotal / pageSize)),
+      },
+    });
   } catch (error) {
     if ((error as any)?.message?.includes('redirect')) throw error;
     console.error('Billing GET error:', error);
@@ -125,35 +136,22 @@ export async function POST(request: NextRequest) {
     });
 
     let processed = 0;
-    let repaired = 0;
-    let missingPrice = 0;
-
     for (const customer of customers) {
-      const amount = resolveCustomerAmount(customer);
-      if (amount <= 0) missingPrice++;
-
-      const existing = await db.invoice.findUnique({
+      const amount = customer.package?.price ?? parseImportedPrice(customer.packageExcel);
+      await db.invoice.upsert({
         where: { customerId_period: { customerId: customer.id, period } },
+        update: { ...(amount > 0 ? { amount } : {}) },
+        create: {
+          customerId: customer.id,
+          period,
+          amount,
+          dueDate: dueDateFor(period, customer.dueDay ?? 10),
+        },
       });
-
-      if (!existing) {
-        await db.invoice.create({
-          data: {
-            customerId: customer.id,
-            period,
-            amount,
-            dueDate: dueDateFor(period, customer.dueDay ?? 10),
-          },
-        });
-      } else if (existing.amount === 0 && amount > 0) {
-        await db.invoice.update({ where: { id: existing.id }, data: { amount } });
-        repaired++;
-      }
-
       processed++;
     }
 
-    return NextResponse.json({ success: true, processed, repaired, missingPrice, period });
+    return NextResponse.json({ success: true, processed, period });
   } catch (error) {
     if ((error as any)?.message?.includes('redirect')) throw error;
     console.error('Billing POST error:', error);
