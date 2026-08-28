@@ -13,6 +13,41 @@ function dueDateFor(period: string, dueDay = 10) {
   return new Date(year, month - 1, Math.min(dueDay, lastDay), 23, 59, 59);
 }
 
+function parsePackageExcelPrice(packageExcel?: string | null) {
+  if (!packageExcel) return 0;
+
+  // Most imported package names contain the monthly base price immediately
+  // before "exc PPN", e.g. "Home 20 199.000 exc PPN 11%".
+  const explicitPrice = packageExcel.match(/(\d{2,3}[.,]\d{3,4})\s*exc\s*PPN/i)?.[1];
+  if (explicitPrice) {
+    let digits = explicitPrice.replace(/\D/g, '');
+
+    // Correct a known imported typo such as 237.5000 -> 237.500.
+    if (digits.length === 7 && digits.endsWith('0')) {
+      digits = digits.slice(0, 6);
+    }
+
+    const amount = Number(digits);
+    return Number.isFinite(amount) ? amount : 0;
+  }
+
+  // Fallback for imported names that only encode price using "k",
+  // e.g. "wireless 280k 10Mbps".
+  const kPrice = packageExcel.match(/(?:^|\s)(\d{2,3})k(?:\s|$)/i)?.[1];
+  if (kPrice) return Number(kPrice) * 1000;
+
+  return 0;
+}
+
+function resolveCustomerAmount(customer: {
+  package?: { price: number } | null;
+  packageExcel?: string | null;
+}) {
+  const linkedPrice = customer.package?.price ?? 0;
+  if (linkedPrice > 0) return linkedPrice;
+  return parsePackageExcelPrice(customer.packageExcel);
+}
+
 async function refreshOverdue() {
   const now = new Date();
   const unpaid = await db.invoice.findMany({ where: { status: 'UNPAID' }, include: { customer: true } });
@@ -90,22 +125,35 @@ export async function POST(request: NextRequest) {
     });
 
     let processed = 0;
+    let repaired = 0;
+    let missingPrice = 0;
+
     for (const customer of customers) {
-      const amount = customer.package?.price ?? 0;
-      await db.invoice.upsert({
+      const amount = resolveCustomerAmount(customer);
+      if (amount <= 0) missingPrice++;
+
+      const existing = await db.invoice.findUnique({
         where: { customerId_period: { customerId: customer.id, period } },
-        update: {},
-        create: {
-          customerId: customer.id,
-          period,
-          amount,
-          dueDate: dueDateFor(period, customer.dueDay ?? 10),
-        },
       });
+
+      if (!existing) {
+        await db.invoice.create({
+          data: {
+            customerId: customer.id,
+            period,
+            amount,
+            dueDate: dueDateFor(period, customer.dueDay ?? 10),
+          },
+        });
+      } else if (existing.amount === 0 && amount > 0) {
+        await db.invoice.update({ where: { id: existing.id }, data: { amount } });
+        repaired++;
+      }
+
       processed++;
     }
 
-    return NextResponse.json({ success: true, processed, period });
+    return NextResponse.json({ success: true, processed, repaired, missingPrice, period });
   } catch (error) {
     if ((error as any)?.message?.includes('redirect')) throw error;
     console.error('Billing POST error:', error);
