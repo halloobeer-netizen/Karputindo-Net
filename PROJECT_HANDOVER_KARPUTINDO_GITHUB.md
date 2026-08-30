@@ -210,7 +210,7 @@ Avoid blind bulk overwrite.
 - Make smallest safe changes.
 - Preserve customer and billing data.
 
-## Mandatory Audit for Next AI
+## Mandatory Audit for Next
 Before coding, report:
 
 1. Current `src/` structure
